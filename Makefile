@@ -1,5 +1,5 @@
 check:
-	pre-commit run --all
+	poetry run pre-commit run --all
 
 test:
-	pytest
+	poetry run pytest
