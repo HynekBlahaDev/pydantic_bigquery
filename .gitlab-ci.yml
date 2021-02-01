@@ -1,0 +1,46 @@
+image: python:3.7-slim
+
+stages:
+  - test
+  - deploy
+
+variables:
+  PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
+
+cache:
+  paths:
+    - .cache/pip
+    - .venv
+
+before_script:
+  - pip install poetry
+  - poetry --version
+  - poetry config settings.virtualenvs.in-project true
+  - poetry install -vv
+
+check:
+  stage: test
+  only:
+    - merge_requests
+  variables:
+    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
+  script:
+    - poetry run make check
+    - poetry run make test
+  cache:
+    key:
+      files:
+        - .pre-commit-config.yaml
+    paths:
+      - ${PRE_COMMIT_HOME}
+
+publish:
+  stage: deploy
+  only:
+    - master
+  variables:
+    PYPI_REGISTRY_TIL: "https://gitlab.com/api/v4/projects/21870843/packages/pypi/simple"
+  script:
+    - poetry config repositories.timeisltd ${PYPI_REGISTRY_TIL}
+    - poetry config http-basic.timeisltd __token__ ${PYPI_UPLOAD_TOKEN}
+    - poetry publish --build -r timeisltd
