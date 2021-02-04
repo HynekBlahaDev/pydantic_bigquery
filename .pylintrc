@@ -1,6 +1,6 @@
 [MASTER]
-# I1101: Module 'pydantic.fields' has no 'ModelField' member, but source is unavailable. Consider adding this module to extension-pkg-whitelist if you want to perform analysis based on run-time introspection of living objects. (c-extension-no-member)
-extension-pkg-whitelist=pydantic.fields
+# https://github.com/samuelcolvin/pydantic/issues/1961#issuecomment-759522422
+extension-pkg-whitelist=pydantic
 
 [MESSAGES CONTROL]
 disable=missing-docstring,

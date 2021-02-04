@@ -1,10 +1,12 @@
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional
+from uuid import UUID
 
 import pytest
 from faker import Faker
 from google.api_core.exceptions import BadRequest
 from google.cloud import bigquery
+from mock import create_autospec
 
 from til_bigquery import BigQueryFetchError, BigQueryRepository
 
@@ -15,7 +17,7 @@ TEST_DATASET_ID = "test_package_til_bigquery"
 
 
 class ExampleBigQueryRepository(BigQueryRepository):
-    def get_example(self, insert_id: str) -> Optional[ExampleModel]:
+    def get_example(self, insert_id: UUID) -> Optional[ExampleModel]:
         query = f"""
             SELECT *
             FROM `{self._project_id}.{self._dataset_id}.{ExampleModel.__TABLE_NAME__}`
@@ -24,7 +26,7 @@ class ExampleBigQueryRepository(BigQueryRepository):
 
         job_config = bigquery.QueryJobConfig(
             query_parameters=[
-                bigquery.ScalarQueryParameter("insert_id", "STRING", insert_id),
+                bigquery.ScalarQueryParameter("insert_id", "STRING", str(insert_id)),
                 bigquery.ScalarQueryParameter("inserted_at", "TIMESTAMP", datetime.now(timezone.utc)),
             ]
         )
@@ -49,7 +51,7 @@ class ExampleBigQueryRepository(BigQueryRepository):
 
         job_config = bigquery.QueryJobConfig(
             query_parameters=[
-                bigquery.ScalarQueryParameter("insert_id", "STRING", model.insert_id),
+                bigquery.ScalarQueryParameter("insert_id", "STRING", str(model.insert_id)),
                 bigquery.ScalarQueryParameter("inserted_at", "TIMESTAMP", model.inserted_at),
                 bigquery.ScalarQueryParameter("my_string", "STRING", model.my_string),
             ]
@@ -111,9 +113,33 @@ def test_create_dataset(bq_repository: BigQueryRepository) -> None:
     bq_repository.create_dataset()
 
 
+def test_get_dataset(bq_repository: BigQueryRepository) -> None:
+    dataset = bq_repository.get_dataset()
+    assert dataset
+
+
+def test_get_dataset_not_found() -> None:
+    bq_repository = BigQueryRepository(project_id=TEST_PROJECT_ID, dataset_id="this-dataset-doesnt-exist")
+    dataset = bq_repository.get_dataset()
+    assert dataset is None
+
+
 def test_create_table(bq_repository: BigQueryRepository, example_table_id: str) -> None:
     ExampleModel.__TABLE_NAME__ = example_table_id
     bq_repository.create_table(ExampleModel)
+
+
+def test_get_table(bq_repository: BigQueryRepository, example_table_id: str) -> None:
+    ExampleModel.__TABLE_NAME__ = example_table_id
+    table = bq_repository.get_table(ExampleModel)
+    assert table
+
+
+def test_get_table_not_found(bq_repository: BigQueryRepository) -> None:
+    mock = create_autospec(ExampleModel)
+    mock.__TABLE_NAME__ = "this-table-doesnt-exist"
+    table = bq_repository.get_table(mock)
+    assert table is None
 
 
 def test_insert(bq_repository: BigQueryRepository, example_model: ExampleModel) -> None:

@@ -1,9 +1,10 @@
 from datetime import date, datetime, timezone
 from enum import Enum
 from typing import List, Optional
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from google.cloud.bigquery import SchemaField
+from pydantic import BaseModel, Field
 
 from til_bigquery import BigQueryModel
 
@@ -20,8 +21,8 @@ class ExampleModel(BigQueryModel):
 
     # We could move these properties to the parent scope => the same basic structure for all tables.
     # I don't have a strong opinion, this is just an example how common fields might be set.
-    insert_id: str = str(uuid4())
-    inserted_at: datetime = datetime.now(timezone.utc)
+    insert_id: UUID = Field(default_factory=uuid4)
+    inserted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     my_string: str
     my_integer: int
@@ -44,6 +45,28 @@ class ExampleModel(BigQueryModel):
     my_repeatable_bool: List[bool]
     my_repeatable_date: List[date]
     my_repeatable_datetime: List[datetime]
+
+
+def test_dynamic_default_value():
+    class ModelCorrect(BaseModel):
+        insert_id: UUID = Field(default_factory=uuid4)
+        inserted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    m1 = ModelCorrect()
+    m2 = ModelCorrect()
+
+    assert m1.insert_id != m2.insert_id
+    assert m1.inserted_at != m2.inserted_at
+
+    class ModelWrong(BaseModel):
+        insert_id: UUID = uuid4()
+        inserted_at: datetime = datetime.now(timezone.utc)
+
+    m3 = ModelWrong()
+    m4 = ModelWrong()
+
+    assert m3.insert_id == m4.insert_id
+    assert m4.inserted_at == m4.inserted_at
 
 
 def test_get_schema() -> None:
@@ -73,3 +96,11 @@ def test_get_schema() -> None:
     ]
 
     assert result == expected
+
+
+def test_subclass_has_config_from_parent_class():
+    class ChildModel(BigQueryModel):
+        pass
+
+    model = ChildModel()
+    assert model.Config == BigQueryModel.Config
