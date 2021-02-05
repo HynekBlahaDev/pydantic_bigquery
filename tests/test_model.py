@@ -19,11 +19,6 @@ class ExampleModel(BigQueryModel):
     __PARTITION_FIELD__: Optional[str] = "inserted_at"
     __CLUSTERING_FIELDS__: List[str] = ["my_string", "my_enum"]
 
-    # We could move these properties to the parent scope => the same basic structure for all tables.
-    # I don't have a strong opinion, this is just an example how common fields might be set.
-    insert_id: UUID = Field(default_factory=uuid4)
-    inserted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
     my_string: str
     my_integer: int
     my_float: float

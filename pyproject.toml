@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "til_bigquery"
-version = "0.1.0"
+version = "0.1.2"
 description = "BigQuery integration with Pydantic models"
 authors = ["Hynek Blaha <hynek.blaha@timeisltd.com>"]
 
@@ -8,6 +8,7 @@ authors = ["Hynek Blaha <hynek.blaha@timeisltd.com>"]
 python = ">=3.7,<3.10"
 pydantic = "^1.7.3"
 google-cloud-bigquery = "1.27.2" # To have same version as MBQ before we remove it (concurrent development)
+structlog = "^20.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"

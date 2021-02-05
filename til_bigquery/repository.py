@@ -1,11 +1,14 @@
 from typing import List, Optional, Type, Union
 
+import structlog
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
 
 from .constants import BigQueryLocation
 from .exceptions import BigQueryInsertError
 from .model import BigQueryModel
+
+log = structlog.get_logger(__name__)
 
 
 class BigQueryRepository:
@@ -21,25 +24,39 @@ class BigQueryRepository:
         self._dataset_id = dataset_id
         self._client = client or bigquery.Client()
 
-    def create_dataset(self, location: BigQueryLocation = BigQueryLocation.EU, exists_ok: bool = True) -> None:
+    def create_dataset(
+        self,
+        location: BigQueryLocation = BigQueryLocation.EU,
+        exists_ok: bool = True,
+    ) -> None:
+        log.info("repository.create_dataset.start", project_id=self._project_id, dataset_id=self._dataset_id)
+
         dataset = bigquery.Dataset(f"{self._project_id}.{self._dataset_id}")
         dataset.location = location.value
 
         self._client.create_dataset(dataset, exists_ok=exists_ok, timeout=self.DEFAULT_TIMEOUT)
 
     def get_dataset(self) -> Optional[bigquery.Dataset]:
-        dataset = bigquery.Dataset(f"{self._project_id}.{self._dataset_id}")
+        log.info("repository.get_dataset.start", project_id=self._project_id, dataset_id=self._dataset_id)
 
         try:
+            dataset = bigquery.Dataset(f"{self._project_id}.{self._dataset_id}")
             return self._client.get_dataset(dataset, timeout=self.DEFAULT_TIMEOUT)
         except NotFound:
             return None
 
     def create_table(self, model: Type[BigQueryModel], exists_ok: bool = True) -> None:
+        log.info(
+            "repository.create_table.start",
+            project_id=self._project_id,
+            dataset_id=self._dataset_id,
+            table_id=model.__TABLE_NAME__,
+        )
+
         schema = model.get_bigquery_schema()
         table = bigquery.Table(
             f"{self._project_id}.{self._dataset_id}.{model.__TABLE_NAME__}",
-            schema=schema,
+            schema,
         )
 
         if model.__PARTITION_FIELD__:
@@ -51,25 +68,37 @@ class BigQueryRepository:
         self._client.create_table(table, exists_ok=exists_ok, timeout=self.DEFAULT_TIMEOUT)
 
     def get_table(self, model: Type[BigQueryModel]) -> Optional[bigquery.Table]:
-        table = bigquery.Table(
-            f"{self._project_id}.{self._dataset_id}.{model.__TABLE_NAME__}",
+        log.info(
+            "repository.get_table.start",
+            project_id=self._project_id,
+            dataset_id=self._dataset_id,
+            table_id=model.__TABLE_NAME__,
         )
 
         try:
+            table = bigquery.Table(f"{self._project_id}.{self._dataset_id}.{model.__TABLE_NAME__}")
             return self._client.get_table(table)
         except NotFound:
             return None
 
     def insert(self, data: Union[BigQueryModel, List[BigQueryModel]]) -> None:
-        if not data:
-            raise BigQueryInsertError("Nothing to insert!")
-
         if not isinstance(data, list):
             data = [data]
 
-        table_id = f"{self._project_id}.{self._dataset_id}.{data[0].__TABLE_NAME__}"
-        rows_to_insert = [x.bq_dict() for x in data]
+        log.info(
+            "repository.insert.start",
+            project_id=self._project_id,
+            dataset_id=self._dataset_id,
+            table_id=data[0].__TABLE_NAME__,
+            count=len(data),
+        )
 
-        errors = self._client.insert_rows_json(table_id, rows_to_insert, timeout=self.DEFAULT_TIMEOUT)
+        rows_to_insert = [x.bq_dict() for x in data]
+        errors = self._client.insert_rows_json(
+            f"{self._project_id}.{self._dataset_id}.{data[0].__TABLE_NAME__}",
+            rows_to_insert,
+            timeout=self.DEFAULT_TIMEOUT,
+        )
         if errors:
+            log.error("repository.insert.error", response=errors)
             raise BigQueryInsertError("Streaming insert error!")

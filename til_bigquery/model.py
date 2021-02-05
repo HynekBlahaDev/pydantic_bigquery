@@ -1,11 +1,11 @@
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from enum import Enum
 from typing import Any, List, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from google.cloud import bigquery
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, Extra, Field
 from pydantic.fields import SHAPE_LIST, SHAPE_SET, SHAPE_SINGLETON, SHAPE_TUPLE, ModelField
 
 from .constants import BigQueryMode
@@ -15,6 +15,10 @@ class BigQueryModel(BaseModel):
     __TABLE_NAME__: str
     __PARTITION_FIELD__: Optional[str] = None
     __CLUSTERING_FIELDS__: List[str] = []
+
+    # Common fields
+    insert_id: UUID = Field(default_factory=uuid4)
+    inserted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Config:
         extra = Extra.forbid
