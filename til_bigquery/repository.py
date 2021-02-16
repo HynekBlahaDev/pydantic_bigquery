@@ -13,6 +13,7 @@ log = structlog.get_logger(__name__)
 
 class BigQueryRepository:
     DEFAULT_TIMEOUT = 30
+    MAX_INSERT_BATCH_SIZE = 10000
 
     def __init__(
         self,
@@ -94,11 +95,18 @@ class BigQueryRepository:
         )
 
         rows_to_insert = [x.bq_dict() for x in data]
-        errors = self._client.insert_rows_json(
-            f"{self._project_id}.{self._dataset_id}.{data[0].__TABLE_NAME__}",
-            rows_to_insert,
-            timeout=self.DEFAULT_TIMEOUT,
-        )
-        if errors:
-            log.error("repository.insert.error", response=errors)
-            raise BigQueryInsertError("Streaming insert error!")
+
+        # Create batches of maximum MAX_INSERT_BATCH_SIZE length
+        rows_to_insert_batches = [
+            rows_to_insert[i : i + self.MAX_INSERT_BATCH_SIZE]
+            for i in range(0, len(rows_to_insert), self.MAX_INSERT_BATCH_SIZE)
+        ]
+        for rows_to_insert_batch in rows_to_insert_batches:
+            errors = self._client.insert_rows_json(
+                f"{self._project_id}.{self._dataset_id}.{data[0].__TABLE_NAME__}",
+                rows_to_insert_batch,
+                timeout=self.DEFAULT_TIMEOUT,
+            )
+            if errors:
+                log.error("repository.insert.error", response=errors)
+                raise BigQueryInsertError("Streaming insert error!")

@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta, timezone
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 import pytest
@@ -8,7 +8,7 @@ from google.api_core.exceptions import BadRequest
 from google.cloud import bigquery
 from mock import create_autospec
 
-from til_bigquery import BigQueryFetchError, BigQueryRepository
+from til_bigquery import BigQueryFetchError, BigQueryModel, BigQueryRepository
 
 from .test_model import ExampleEnum, ExampleModel
 
@@ -167,3 +167,14 @@ def test_steaming_update_impossible(
     original.my_string = "bonjour"
     with pytest.raises(BadRequest):
         example_bq_repository.update_example(original)
+
+
+def test_insert_over_max_size(bq_repository: BigQueryRepository):
+    class TinyBigQueryModel(BigQueryModel):
+        __TABLE_NAME__: str = "tiny_model"
+
+        integer: int
+
+    bq_repository.create_table(TinyBigQueryModel)
+    data: List[BigQueryModel] = [TinyBigQueryModel(integer=i) for i in range(bq_repository.MAX_INSERT_BATCH_SIZE + 1)]
+    bq_repository.insert(data)
