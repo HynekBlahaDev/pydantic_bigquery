@@ -1,3 +1,6 @@
+## 2021-02-24 - v0.2.0
+###### Update packages
+
 ## 2021-02-16 - v0.1.3
 ###### Batch inserts by 10k items (max insert limit)
 
