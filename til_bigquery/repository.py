@@ -1,4 +1,4 @@
-from typing import List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 import structlog
 from google.cloud import bigquery
@@ -29,13 +29,27 @@ class BigQueryRepository:
         self,
         location: BigQueryLocation = BigQueryLocation.EU,
         exists_ok: bool = True,
-    ) -> None:
-        log.info("repository.create_dataset.start", project_id=self._project_id, dataset_id=self._dataset_id)
+        description: Optional[str] = None,
+        labels: Optional[Dict[str, Any]] = None,
+        default_table_expiration_ms: Optional[int] = None,
+    ) -> bigquery.Dataset:
+        log.info(
+            "repository.create_dataset.start",
+            project_id=self._project_id,
+            dataset_id=self._dataset_id,
+            location=location,
+            description=description,
+            labels=labels,
+            default_table_expiration_ms=default_table_expiration_ms,
+        )
 
         dataset = bigquery.Dataset(f"{self._project_id}.{self._dataset_id}")
         dataset.location = location.value
+        dataset.description = description
+        dataset.labels = labels or dict()
+        dataset.default_table_expiration_ms = default_table_expiration_ms
 
-        self._client.create_dataset(dataset, exists_ok=exists_ok, timeout=self.DEFAULT_TIMEOUT)
+        return self._client.create_dataset(dataset, exists_ok=exists_ok, timeout=self.DEFAULT_TIMEOUT)
 
     def get_dataset(self) -> Optional[bigquery.Dataset]:
         log.info("repository.get_dataset.start", project_id=self._project_id, dataset_id=self._dataset_id)
@@ -46,12 +60,20 @@ class BigQueryRepository:
         except NotFound:
             return None
 
-    def create_table(self, model: Type[BigQueryModel], exists_ok: bool = True) -> None:
+    def create_table(
+        self,
+        model: Type[BigQueryModel],
+        exists_ok: bool = True,
+        description: Optional[str] = None,
+        labels: Optional[Dict[str, Any]] = None,
+    ) -> bigquery.Table:
         log.info(
             "repository.create_table.start",
             project_id=self._project_id,
             dataset_id=self._dataset_id,
             table_id=model.__TABLE_NAME__,
+            description=description,
+            labels=labels,
         )
 
         schema = model.get_bigquery_schema()
@@ -59,6 +81,8 @@ class BigQueryRepository:
             f"{self._project_id}.{self._dataset_id}.{model.__TABLE_NAME__}",
             schema,
         )
+        table.description = description
+        table.labels = labels or dict()
 
         if model.__PARTITION_FIELD__:
             table.time_partitioning = bigquery.TimePartitioning(field=model.__PARTITION_FIELD__)
@@ -66,7 +90,7 @@ class BigQueryRepository:
         if model.__CLUSTERING_FIELDS__:
             table.clustering_fields = model.__CLUSTERING_FIELDS__
 
-        self._client.create_table(table, exists_ok=exists_ok, timeout=self.DEFAULT_TIMEOUT)
+        return self._client.create_table(table, exists_ok=exists_ok, timeout=self.DEFAULT_TIMEOUT)
 
     def get_table(self, model: Type[BigQueryModel]) -> Optional[bigquery.Table]:
         log.info(

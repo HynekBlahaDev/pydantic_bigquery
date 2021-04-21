@@ -10,6 +10,7 @@ disable=missing-docstring,
         no-member,
         too-few-public-methods,
         too-many-instance-attributes,
+        too-many-arguments,
         # SOLVE LATER (https://medium.com/swlh/why-it-matters-how-you-log-in-python-1a1085851205)
         logging-fstring-interpolation,
         logging-format-interpolation,

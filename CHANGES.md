@@ -1,3 +1,7 @@
+## 2021-04-21 - v0.2.1
+ - create_dataset(): Add optional description, labels, default_table_expiration_ms
+ - create_table(): Add optional description, labels
+
 ## 2021-02-24 - v0.2.0
 ###### Update packages
 

@@ -8,7 +8,7 @@ from google.api_core.exceptions import BadRequest
 from google.cloud import bigquery
 from mock import create_autospec
 
-from til_bigquery import BigQueryFetchError, BigQueryModel, BigQueryRepository
+from til_bigquery import BigQueryFetchError, BigQueryLocation, BigQueryModel, BigQueryRepository
 
 from .test_model import ExampleEnum, ExampleModel
 
@@ -110,7 +110,17 @@ def fixture_example_model(example_table_id: str) -> ExampleModel:
 
 
 def test_create_dataset(bq_repository: BigQueryRepository) -> None:
-    bq_repository.create_dataset()
+    result = bq_repository.create_dataset(
+        location=BigQueryLocation.US,
+        description="TestDescription",
+        labels=dict(name="value"),
+        default_table_expiration_ms=3600000,  # minimum
+    )
+
+    assert result.location == BigQueryLocation.US
+    assert result.description == "TestDescription"
+    assert result.labels == dict(name="value")
+    assert result.default_table_expiration_ms == 3600000
 
 
 def test_get_dataset(bq_repository: BigQueryRepository) -> None:
@@ -126,7 +136,14 @@ def test_get_dataset_not_found() -> None:
 
 def test_create_table(bq_repository: BigQueryRepository, example_table_id: str) -> None:
     ExampleModel.__TABLE_NAME__ = example_table_id
-    bq_repository.create_table(ExampleModel)
+    result = bq_repository.create_table(
+        ExampleModel,
+        description="TestDescription2",
+        labels=dict(name="value2"),
+    )
+
+    assert result.description == "TestDescription2"
+    assert result.labels == dict(name="value2")
 
 
 def test_get_table(bq_repository: BigQueryRepository, example_table_id: str) -> None:
