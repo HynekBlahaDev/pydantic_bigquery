@@ -11,14 +11,10 @@ from pydantic.fields import SHAPE_LIST, SHAPE_SET, SHAPE_SINGLETON, SHAPE_TUPLE,
 from .constants import BigQueryMode
 
 
-class BigQueryModel(BaseModel):
+class BigQueryModelBase(BaseModel):
     __TABLE_NAME__: str
     __PARTITION_FIELD__: Optional[str] = None
     __CLUSTERING_FIELDS__: List[str] = []
-
-    # Common fields
-    insert_id: UUID = Field(default_factory=uuid4)
-    inserted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Config:
         extra = Extra.forbid
@@ -79,3 +75,13 @@ class BigQueryModel(BaseModel):
     def bq_dict(self) -> Any:
         # Conversion hack = Use pydantic encoders (datetime, enum -> str)
         return json.loads(self.json())
+
+
+class BigQueryModel(BigQueryModelBase):
+    insert_id: UUID = Field(default_factory=uuid4)
+    inserted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class BigQueryModelLegacy(BigQueryModelBase):
+    insert_id: UUID = Field(default_factory=uuid4)
+    time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

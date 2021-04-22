@@ -1,3 +1,6 @@
+## 2021-04-22 - v0.2.2
+ - Add BigQueryModelLegacy: represents mbq models
+
 ## 2021-04-21 - v0.2.1
  - create_dataset(): Add optional description, labels, default_table_expiration_ms
  - create_table(): Add optional description, labels
