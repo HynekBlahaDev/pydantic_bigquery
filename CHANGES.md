@@ -1,4 +1,4 @@
-## 2021-04-22 - v0.2.2
+## 2021-04-22 - v0.2.3
  - Add BigQueryModelLegacy: represents mbq models
 
 ## 2021-04-21 - v0.2.1

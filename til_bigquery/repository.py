@@ -6,7 +6,7 @@ from google.cloud.exceptions import NotFound
 
 from .constants import BigQueryLocation
 from .exceptions import BigQueryInsertError
-from .model import BigQueryModel
+from .model import BigQueryModelBase
 
 log = structlog.get_logger(__name__)
 
@@ -62,7 +62,7 @@ class BigQueryRepository:
 
     def create_table(
         self,
-        model: Type[BigQueryModel],
+        model: Type[BigQueryModelBase],
         exists_ok: bool = True,
         description: Optional[str] = None,
         labels: Optional[Dict[str, Any]] = None,
@@ -92,7 +92,7 @@ class BigQueryRepository:
 
         return self._client.create_table(table, exists_ok=exists_ok, timeout=self.DEFAULT_TIMEOUT)
 
-    def get_table(self, model: Type[BigQueryModel]) -> Optional[bigquery.Table]:
+    def get_table(self, model: Type[BigQueryModelBase]) -> Optional[bigquery.Table]:
         log.info(
             "repository.get_table.start",
             project_id=self._project_id,
@@ -106,7 +106,7 @@ class BigQueryRepository:
         except NotFound:
             return None
 
-    def insert(self, data: Union[BigQueryModel, List[BigQueryModel]]) -> None:
+    def insert(self, data: Union[BigQueryModelBase, List[BigQueryModelBase]]) -> None:
         if not isinstance(data, list):
             data = [data]
 

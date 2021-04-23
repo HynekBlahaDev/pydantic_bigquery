@@ -8,7 +8,7 @@ from google.api_core.exceptions import BadRequest
 from google.cloud import bigquery
 from mock import create_autospec
 
-from til_bigquery import BigQueryFetchError, BigQueryLocation, BigQueryModel, BigQueryRepository
+from til_bigquery import BigQueryFetchError, BigQueryLocation, BigQueryModel, BigQueryModelBase, BigQueryRepository
 
 from .test_model import ExampleEnum, ExampleModel
 
@@ -193,5 +193,7 @@ def test_insert_over_max_size(bq_repository: BigQueryRepository):
         integer: int
 
     bq_repository.create_table(TinyBigQueryModel)
-    data: List[BigQueryModel] = [TinyBigQueryModel(integer=i) for i in range(bq_repository.MAX_INSERT_BATCH_SIZE + 1)]
+    data: List[BigQueryModelBase] = [
+        TinyBigQueryModel(integer=i) for i in range(bq_repository.MAX_INSERT_BATCH_SIZE + 1)
+    ]
     bq_repository.insert(data)
