@@ -23,7 +23,7 @@ class BigQueryRepository:
     ):
         self._project_id = project_id
         self._dataset_id = dataset_id
-        self._client = client or bigquery.Client()
+        self._client = client or bigquery.Client(project_id)
 
     def create_dataset(
         self,
@@ -107,6 +107,11 @@ class BigQueryRepository:
             return None
 
     def insert(self, data: Union[BigQueryModelBase, List[BigQueryModelBase]]) -> None:
+        # Empty list
+        if not data:
+            return
+
+        # Single item
         if not isinstance(data, list):
             data = [data]
 

@@ -159,6 +159,10 @@ def test_get_table_not_found(bq_repository: BigQueryRepository) -> None:
     assert table is None
 
 
+def test_insert_empty(bq_repository: BigQueryRepository) -> None:
+    bq_repository.insert([])
+
+
 def test_insert(bq_repository: BigQueryRepository, example_model: ExampleModel) -> None:
     bq_repository.insert(example_model)
 

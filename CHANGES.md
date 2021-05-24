@@ -1,3 +1,6 @@
+## 2021-05-24 - v0.2.4
+ - Insert: Return when list is empty
+
 ## 2021-04-22 - v0.2.3
  - Add BigQueryModelLegacy: represents mbq models
 
