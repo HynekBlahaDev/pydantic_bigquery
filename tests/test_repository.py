@@ -167,6 +167,17 @@ def test_insert(bq_repository: BigQueryRepository, example_model: ExampleModel) 
     bq_repository.insert(example_model)
 
 
+def test_insert_large(bq_repository: BigQueryRepository) -> None:
+    class LargeModel(BigQueryModelBase):
+        __TABLE_NAME__: str = "large_model"
+
+        a: str
+
+    bq_repository.create_table(LargeModel)
+    large_list: List[BigQueryModelBase] = [LargeModel(a="a" * 1_000_000) for _ in range(12)]
+    bq_repository.insert(large_list)
+
+
 def test_get(example_bq_repository: ExampleBigQueryRepository, example_model: ExampleModel) -> None:
     result = example_bq_repository.get_example(example_model.insert_id)
     assert result == example_model

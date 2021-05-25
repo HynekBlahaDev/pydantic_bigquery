@@ -1,3 +1,6 @@
+## 2021-05-25 - v0.2.5
+ - Insert: Retry with bisect when request body is too large
+
 ## 2021-05-24 - v0.2.4
  - Insert: Return when list is empty
 
