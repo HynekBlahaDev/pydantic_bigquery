@@ -1,3 +1,6 @@
+## 2021-06-21 - v0.2.6
+ - Insert: Retry with bisect when request body is too large (2)
+
 ## 2021-05-25 - v0.2.5
  - Insert: Retry with bisect when request body is too large
 

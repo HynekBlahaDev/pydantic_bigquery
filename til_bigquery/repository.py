@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Type, Union
 
 import structlog
 from google.cloud import bigquery
-from google.cloud.exceptions import BadRequest, NotFound
+from google.cloud.exceptions import BadRequest, GoogleCloudError, NotFound
 
 from .constants import BigQueryLocation
 from .exceptions import BigQueryInsertError
@@ -139,12 +139,13 @@ class BigQueryRepository:
                 if errors:
                     log.error("repository.insert.error", response=errors)
                     raise BigQueryInsertError("Streaming insert error!")
-            except BadRequest as e:
+            except (BadRequest, GoogleCloudError) as e:
                 # This happens when payload is significantly over the limit and the server side of BQ trims it.
                 # https://github.com/googleapis/google-cloud-go/issues/2855#issuecomment-702993221
                 if (
                     "Your client has issued a malformed or illegal request." in e.response.text
                     or "Request payload size exceeds the limit: 10485760 bytes." in e.response.text
+                    or "Your client issued a request that was too large" in e.response.text
                 ):
                     log.warning("repository.insert.too_large_body", response=e.response.text)
 
