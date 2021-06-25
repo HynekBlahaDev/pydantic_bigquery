@@ -137,7 +137,7 @@ class BigQueryRepository:
                     timeout=self.DEFAULT_TIMEOUT,
                 )
                 if errors:
-                    log.error("repository.insert.error", response=errors)
+                    log.error("repository.insert.error", first_error=errors[0])
                     raise BigQueryInsertError("Streaming insert error!")
             except (BadRequest, GoogleCloudError) as e:
                 # This happens when payload is significantly over the limit and the server side of BQ trims it.

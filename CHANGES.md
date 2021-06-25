@@ -1,3 +1,6 @@
+## 2021-06-25 - v0.2.7
+ - Insert: Log only the first error, full errors (large) break logs
+
 ## 2021-06-21 - v0.2.6
  - Insert: Retry with bisect when request body is too large (2)
 
