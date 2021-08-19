@@ -1,3 +1,6 @@
+## 2021-08-19 - v0.2.8
+ - Insert: Retry on temporary backendError
+
 ## 2021-06-25 - v0.2.7
  - Insert: Log only the first error, full errors (large) break logs
 

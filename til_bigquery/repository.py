@@ -1,11 +1,12 @@
 from typing import Any, Dict, List, Optional, Type, Union
 
+import backoff
 import structlog
 from google.cloud import bigquery
 from google.cloud.exceptions import BadRequest, GoogleCloudError, NotFound
 
 from .constants import BigQueryLocation
-from .exceptions import BigQueryInsertError
+from .exceptions import BigQueryBackendInsertError, BigQueryInsertError
 from .model import BigQueryModelBase
 
 log = structlog.get_logger(__name__)
@@ -106,6 +107,7 @@ class BigQueryRepository:
         except NotFound:
             return None
 
+    @backoff.on_exception(backoff.expo, exception=BigQueryBackendInsertError, max_tries=10, jitter=None)  # type: ignore
     def insert(self, data: Union[BigQueryModelBase, List[BigQueryModelBase]]) -> None:
         # Empty list
         if not data:
@@ -137,7 +139,12 @@ class BigQueryRepository:
                     timeout=self.DEFAULT_TIMEOUT,
                 )
                 if errors:
-                    log.error("repository.insert.error", first_error=errors[0])
+                    first_error = str(errors[0])
+                    if "backendError" in first_error:
+                        log.warning("repository.insert.backend_error", first_error=first_error)
+                        raise BigQueryBackendInsertError("Streaming insert error [temporary]")
+
+                    log.error("repository.insert.error", first_error=first_error)
                     raise BigQueryInsertError("Streaming insert error!")
             except (BadRequest, GoogleCloudError) as e:
                 # This happens when payload is significantly over the limit and the server side of BQ trims it.
