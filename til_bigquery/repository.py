@@ -47,7 +47,7 @@ class BigQueryRepository:
         dataset = bigquery.Dataset(f"{self._project_id}.{self._dataset_id}")
         dataset.location = location.value
         dataset.description = description
-        dataset.labels = labels or dict()
+        dataset.labels = labels or {}
         dataset.default_table_expiration_ms = default_table_expiration_ms
 
         return self._client.create_dataset(dataset, exists_ok=exists_ok, timeout=self.DEFAULT_TIMEOUT)
@@ -83,7 +83,7 @@ class BigQueryRepository:
             schema,
         )
         table.description = description
-        table.labels = labels or dict()
+        table.labels = labels or {}
 
         if model.__PARTITION_FIELD__:
             table.time_partitioning = bigquery.TimePartitioning(field=model.__PARTITION_FIELD__)

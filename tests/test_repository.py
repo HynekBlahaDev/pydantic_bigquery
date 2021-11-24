@@ -10,7 +10,13 @@ from mock import create_autospec
 
 from til_bigquery import BigQueryFetchError, BigQueryLocation, BigQueryModel, BigQueryModelBase, BigQueryRepository
 
-from .test_model import ExampleEnum, ExampleModel
+from .test_model import (
+    ExampleEnum,
+    ExampleModel,
+    ExampleModelNested,
+    ExampleModelNestedInner1,
+    ExampleModelNestedInner2,
+)
 
 TEST_PROJECT_ID = "platform-local"
 TEST_DATASET_ID = "test_package_til_bigquery"
@@ -36,7 +42,7 @@ class ExampleBigQueryRepository(BigQueryRepository):
             raise BigQueryFetchError
 
         bq_row: bigquery.table.Row
-        for bq_row in query_job.result(max_results=1):
+        for bq_row in query_job.result(max_results=1):  # pylint: disable=E1123
             bq_dict = dict(bq_row.items())
             return ExampleModel(**bq_dict)
 
@@ -62,7 +68,7 @@ class ExampleBigQueryRepository(BigQueryRepository):
             raise BigQueryFetchError
 
         bq_row: bigquery.table.Row
-        for bq_row in query_job.result(max_results=1):
+        for bq_row in query_job.result(max_results=1):  # pylint: disable=E1123
             bq_dict = dict(bq_row.items())
             return ExampleModel(**bq_dict)
 
@@ -71,6 +77,11 @@ class ExampleBigQueryRepository(BigQueryRepository):
 
 @pytest.fixture(scope="session", name="example_table_id")
 def fixture_example_table_id() -> str:
+    return "_".join(Faker().words(2))
+
+
+@pytest.fixture(scope="session", name="example_table_nested_id")
+def fixture_example_table_nested_id() -> str:
     return "_".join(Faker().words(2))
 
 
@@ -105,6 +116,18 @@ def fixture_example_model(example_table_id: str) -> ExampleModel:
             datetime.now(timezone.utc),
             datetime.now(timezone.utc) + timedelta(hours=12),
         ],
+    )
+    return model
+
+
+@pytest.fixture(scope="session", name="example_model_nested")
+def fixture_example_model_nested(example_table_nested_id: str) -> ExampleModelNested:
+    ExampleModelNested.__TABLE_NAME__ = example_table_nested_id
+    model = ExampleModelNested(
+        struct1=ExampleModelNestedInner1(
+            struct2=ExampleModelNestedInner2(my_integer=1),
+            repeatable_struct2=[ExampleModelNestedInner2(my_integer=2), ExampleModelNestedInner2(my_integer=3)],
+        )
     )
     return model
 
@@ -144,6 +167,22 @@ def test_create_table(bq_repository: BigQueryRepository, example_table_id: str) 
 
     assert result.description == "TestDescription2"
     assert result.labels == dict(name="value2")
+
+
+def test_create_table_nested(bq_repository: BigQueryRepository, example_table_nested_id: str) -> None:
+    ExampleModelNested.__TABLE_NAME__ = example_table_nested_id
+    result = bq_repository.create_table(
+        ExampleModelNested,
+        description="TestDescription2",
+        labels=dict(name="value2"),
+    )
+
+    assert result.description == "TestDescription2"
+    assert result.labels == dict(name="value2")
+
+
+def test_insert_nested(bq_repository: BigQueryRepository, example_model_nested: ExampleModelNested) -> None:
+    bq_repository.insert(example_model_nested)
 
 
 def test_get_table(bq_repository: BigQueryRepository, example_table_id: str) -> None:

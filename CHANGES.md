@@ -1,3 +1,6 @@
+## 2021-11-24 - v0.3.0
+ - Model: Add support for nested fields (records)
+
 ## 2021-08-19 - v0.2.8
  - Insert: Retry on temporary backendError
 

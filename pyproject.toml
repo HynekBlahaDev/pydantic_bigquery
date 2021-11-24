@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "til_bigquery"
-version = "0.2.8"
+version = "0.3.0"
 description = "BigQuery integration with Pydantic models"
 authors = ["Hynek Blaha <hynek.blaha@timeisltd.com>"]
 

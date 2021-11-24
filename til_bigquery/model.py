@@ -29,11 +29,13 @@ class BigQueryModelBase(BaseModel):
     def _get_schema_field(cls, field: ModelField) -> bigquery.SchemaField:
         schema_type = cls._get_schema_field_type(field)
         schema_mode = cls._get_schema_field_mode(field)
+        inner_fields = cls._get_schema_inner_fields(field)
 
         return bigquery.SchemaField(
             name=field.name,
             field_type=str(schema_type.value),
             mode=str(schema_mode.value),
+            fields=inner_fields,
         )
 
     @staticmethod
@@ -52,8 +54,16 @@ class BigQueryModelBase(BaseModel):
             return bigquery.enums.SqlTypeNames.DATE
         if field.type_ == datetime:
             return bigquery.enums.SqlTypeNames.TIMESTAMP
+        if issubclass(field.type_, BaseModel):
+            return bigquery.enums.SqlTypeNames.RECORD
 
         raise NotImplementedError(f"Unknown type: {field.type_}")
+
+    @classmethod
+    def _get_schema_inner_fields(cls, field: ModelField) -> List[bigquery.SchemaField]:
+        if issubclass(field.type_, BaseModel):
+            return [cls._get_schema_field(field) for field in field.type_.__fields__.values()]
+        return []
 
     @staticmethod
     def _get_schema_field_mode(field: ModelField) -> BigQueryMode:

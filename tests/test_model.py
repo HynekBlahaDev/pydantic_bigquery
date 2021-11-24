@@ -99,3 +99,63 @@ def test_subclass_has_config_from_parent_class():
 
     model = ChildModel()
     assert model.Config == BigQueryModel.Config
+
+
+class ExampleModelNestedInner2(BaseModel):
+    my_integer: int
+
+
+class ExampleModelNestedInner1(BaseModel):
+    struct2: ExampleModelNestedInner2
+    nullable_struct2: Optional[ExampleModelNestedInner2]
+    repeatable_struct2: List[ExampleModelNestedInner2]
+
+
+class ExampleModelNested(BigQueryModel):
+    __TABLE_NAME__: str = "example_model_nested"
+    __PARTITION_FIELD__: Optional[str] = "inserted_at"
+
+    struct1: ExampleModelNestedInner1
+
+
+def test_get_schema_nested() -> None:
+    result = ExampleModelNested.get_bigquery_schema()
+    expected = [
+        SchemaField("insert_id", "STRING", "REQUIRED", None, (), None),
+        SchemaField("inserted_at", "TIMESTAMP", "REQUIRED", None, (), None),
+        SchemaField(
+            "struct1",
+            "RECORD",
+            "REQUIRED",
+            None,
+            (
+                SchemaField(
+                    "struct2",
+                    "RECORD",
+                    "REQUIRED",
+                    None,
+                    (SchemaField("my_integer", "INTEGER", "REQUIRED", None, (), None),),
+                    None,
+                ),
+                SchemaField(
+                    "nullable_struct2",
+                    "RECORD",
+                    "NULLABLE",
+                    None,
+                    (SchemaField("my_integer", "INTEGER", "REQUIRED", None, (), None),),
+                    None,
+                ),
+                SchemaField(
+                    "repeatable_struct2",
+                    "RECORD",
+                    "REPEATED",
+                    None,
+                    (SchemaField("my_integer", "INTEGER", "REQUIRED", None, (), None),),
+                    None,
+                ),
+            ),
+            None,
+        ),
+    ]
+
+    assert result == expected
