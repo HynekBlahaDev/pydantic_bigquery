@@ -1,15 +1,15 @@
 [tool.poetry]
 name = "til_bigquery"
-version = "0.3.0"
+version = "0.3.1"
 description = "BigQuery integration with Pydantic models"
 authors = ["Hynek Blaha <hynek.blaha@timeisltd.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.10"
-pydantic = "^1.7.3"
-structlog = "^20.2.0"
+pydantic = ">=1.7.3"
+structlog = ">=20.2.0"
 google-cloud-bigquery = "^2.9.0"
-backoff = "^1.11.1"
+backoff = ">=1.11.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"

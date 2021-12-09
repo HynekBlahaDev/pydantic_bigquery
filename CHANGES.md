@@ -1,3 +1,6 @@
+## 2021-12-09 - v0.3.1
+ - Unpin structlog dependency
+
 ## 2021-11-24 - v0.3.0
  - Model: Add support for nested fields (records)
 
