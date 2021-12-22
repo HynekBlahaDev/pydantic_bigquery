@@ -22,6 +22,8 @@ class BigQueryRepository:
         dataset_id: str,
         client: Optional[bigquery.Client] = None,
     ):
+        assert project_id and dataset_id, "BigQueryRepository needs both project_id and dataset_id!"
+
         self._project_id = project_id
         self._dataset_id = dataset_id
         self._client = client or bigquery.Client(project_id)
@@ -168,3 +170,5 @@ class BigQueryRepository:
                     data_batch_1, data_batch_2 = data_batch[:half_size], data_batch[half_size:]
                     self.insert(data_batch_1)
                     self.insert(data_batch_2)
+                else:
+                    raise

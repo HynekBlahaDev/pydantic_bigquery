@@ -1,3 +1,6 @@
+## 2021-12-22 - v0.3.2
+ - Add validation check for project_id, dataset_id
+
 ## 2021-12-09 - v0.3.1
  - Unpin structlog dependency
 

@@ -8,15 +8,14 @@ from google.api_core.exceptions import BadRequest
 from google.cloud import bigquery
 from mock import create_autospec
 
-from til_bigquery import BigQueryFetchError, BigQueryLocation, BigQueryModel, BigQueryModelBase, BigQueryRepository
-
-from .test_model import (
+from tests.test_model import (
     ExampleEnum,
     ExampleModel,
     ExampleModelNested,
     ExampleModelNestedInner1,
     ExampleModelNestedInner2,
 )
+from til_bigquery import BigQueryFetchError, BigQueryLocation, BigQueryModel, BigQueryModelBase, BigQueryRepository
 
 TEST_PROJECT_ID = "platform-local"
 TEST_DATASET_ID = "test_package_til_bigquery"
@@ -215,6 +214,11 @@ def test_insert_large(bq_repository: BigQueryRepository) -> None:
     bq_repository.create_table(LargeModel)
     large_list: List[BigQueryModelBase] = [LargeModel(a="a" * 1_000_000) for _ in range(12)]
     bq_repository.insert(large_list)
+
+
+def test_insert_dataset_not_set() -> None:
+    with pytest.raises(AssertionError):
+        BigQueryRepository(project_id=TEST_PROJECT_ID, dataset_id="")
 
 
 def test_get(example_bq_repository: ExampleBigQueryRepository, example_model: ExampleModel) -> None:
