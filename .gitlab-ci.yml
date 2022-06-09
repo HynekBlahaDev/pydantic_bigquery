@@ -1,4 +1,4 @@
-image: python:3.7-slim
+image: python:3.9-slim
 
 stages:
   - test
@@ -25,8 +25,8 @@ check:
   script:
     - poetry run black .
     - poetry run isort .
-    - poetry run mypy .
-    - poetry run pylint til_bigquery tests
+    - poetry run mypy pydantic_bigquery tests
+    - poetry run pylint pydantic_bigquery tests
     - export GOOGLE_APPLICATION_CREDENTIALS=$TEST_KEY_FILE
     - poetry run pytest
 

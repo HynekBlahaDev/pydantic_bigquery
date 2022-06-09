@@ -22,8 +22,6 @@ class BigQueryRepository:
         dataset_id: str,
         client: Optional[bigquery.Client] = None,
     ):
-        assert project_id and dataset_id, "BigQueryRepository needs both project_id and dataset_id!"
-
         self._project_id = project_id
         self._dataset_id = dataset_id
         self._client = client or bigquery.Client(project_id)
@@ -109,7 +107,7 @@ class BigQueryRepository:
         except NotFound:
             return None
 
-    @backoff.on_exception(backoff.expo, exception=BigQueryBackendInsertError, max_tries=10, jitter=None)  # type: ignore
+    @backoff.on_exception(backoff.expo, exception=BigQueryBackendInsertError, max_tries=10, jitter=None)
     def insert(self, data: Union[BigQueryModelBase, List[BigQueryModelBase]]) -> None:
         # Empty list
         if not data:

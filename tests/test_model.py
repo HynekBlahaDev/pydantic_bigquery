@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 from google.cloud.bigquery import SchemaField
 from pydantic import BaseModel, Field
 
-from til_bigquery import BigQueryModel
+from pydantic_bigquery import BigQueryModel
 
 
 class ExampleEnum(Enum):

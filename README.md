@@ -1,7 +1,7 @@
-TIL BigQuery
+Pydantic-BigQuery
 ==============
 ### About
-TIL-BigQuery integrates pydantic models with bigquery Client.
+Pydantic-BigQuery integrates [pydantic models](https://pydantic-docs.helpmanual.io/) with [bigquery Client](https://googleapis.dev/python/bigquery/latest/index.html).
 
 There are two main objects:<br />
 **BigQueryModel** = base class for BigQuery table (structure is validated by pydantic).<br />
@@ -9,12 +9,12 @@ There are two main objects:<br />
 
 Model usage:
 ```python
-from til_bigquery import BigQueryModel
+from pydantic_bigquery import BigQueryModel
 from typing import Optional, List
 from enum import Enum
 from datetime import date, datetime, timedelta, timezone
 
-class ExampleEnum(Enum):
+class ExampleEnum(str, Enum):
     FOO = "FOO"
     BAR = "BAR"
 
@@ -68,7 +68,7 @@ model_instance = ExampleModel(
 
 Repository usage:
 ```python
-from til_bigquery import BigQueryRepository
+from pydantic_bigquery import BigQueryRepository
 
 repository = BigQueryRepository("project_id", "dataset_id")
 repository.create_dataset()

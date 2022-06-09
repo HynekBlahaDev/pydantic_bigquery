@@ -90,8 +90,3 @@ class BigQueryModelBase(BaseModel):
 class BigQueryModel(BigQueryModelBase):
     insert_id: UUID = Field(default_factory=uuid4)
     inserted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-
-class BigQueryModelLegacy(BigQueryModelBase):
-    insert_id: UUID = Field(default_factory=uuid4)
-    time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
